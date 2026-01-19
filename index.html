@@ -3,55 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <title>Physics Sandbox</title>
+
 <style>
 body {
-  margin: 0;
-  background: #0a0a0a;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
-  cursor: none;
+  margin:0;
+  overflow:hidden;
+  font-family:Arial, sans-serif;
+  background:#0a0a0a;
+  cursor:none;
 }
-canvas { display: block; }
+
+/* THEMES */
+body.theme-dark { background:#0a0a0a; }
+body.theme-grid { background:#0e0e16; }
+body.theme-sand { background:#1a1408; }
+body.theme-lab  { background:#0f1a1f; }
+
+canvas { display:block; }
 
 #toolbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 70px;
-  background: rgba(20,20,20,0.95);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px;
-  overflow-x: auto;
-  border-bottom: 1px solid #333;
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:70px;
+  background:rgba(20,20,20,.95);
+  display:flex;
+  gap:8px;
+  padding:10px;
+  overflow-x:auto;
+  border-bottom:1px solid #333;
 }
 
 .tool {
-  min-width: 90px;
-  padding: 8px;
-  background: #1e1e1e;
-  color: white;
-  border: 1px solid #333;
-  text-align: center;
-  cursor: pointer;
-  user-select: none;
+  min-width:90px;
+  padding:8px;
+  background:#1e1e1e;
+  color:#fff;
+  border:1px solid #333;
+  text-align:center;
+  cursor:pointer;
+  user-select:none;
 }
-.tool.active {
-  background: #4fc3f7;
-  color: black;
-}
+
+.tool.active { background:#4fc3f7; color:#000; }
 #clear { background:#b71c1c; }
 
-#cursor {
-  position: fixed;
-  width: 14px;
-  height: 14px;
-  pointer-events: none;
-  image-rendering: pixelated;
+#settingsBtn {
+  background:#6a1b9a;
 }
-#cursor::before {
+
+/* SETTINGS PANEL */
+#settings {
+  position:fixed;
+  top:80px;
+  right:10px;
+  width:260px;
+  background:#111;
+  border:1px solid #333;
+  padding:10px;
+  display:none;
+  color:#fff;
+  font-size:14px;
+}
+
+#settings h3 {
+  margin:6px 0;
+  font-size:14px;
+}
+
+.setting {
+  margin-bottom:8px;
+}
+
+.setting select,
+.setting input {
+  width:100%;
+}
+
+.cursor-preview {
+  display:inline-block;
+  width:24px;
+  height:24px;
+  border:1px solid #444;
+  margin-right:6px;
+  vertical-align:middle;
+}
+
+/* CURSOR */
+#cursor {
+  position:fixed;
+  pointer-events:none;
+}
+
+.cursor-cross {
+  width:14px;height:14px;
+}
+.cursor-cross::before {
   content:"";
   position:absolute;
   inset:0;
@@ -62,56 +110,113 @@ canvas { display: block; }
   background-position:center;
   background-repeat:no-repeat;
 }
+
+.cursor-square {
+  width:10px;height:10px;
+  background:#fff;
+}
+
+.cursor-dot {
+  width:6px;height:6px;
+  background:#fff;
+  border-radius:50%;
+}
+
+.cursor-ring {
+  width:14px;height:14px;
+  border:2px solid #fff;
+  border-radius:50%;
+}
 </style>
 </head>
-<body>
+
+<body class="theme-dark">
 
 <div id="toolbar">
-  <div class="tool active" data-tool="ball">Ball</div>
-  <div class="tool" data-tool="box">Box</div>
+  <div class="tool active" data-tool="brick">Brick</div>
+  <div class="tool" data-tool="metal">Metal</div>
+  <div class="tool" data-tool="wood">Wood</div>
+  <div class="tool" data-tool="stone">Stone</div>
+  <div class="tool" data-tool="glass">Glass</div>
   <div class="tool" data-tool="sand">Sand</div>
   <div class="tool" data-tool="water">Water</div>
+  <div class="tool" data-tool="oil">Oil</div>
   <div class="tool" data-tool="lava">Lava</div>
-  <div class="tool" data-tool="brick">Brick</div>
-  <div class="tool" data-tool="bomb">Bomb</div>
-  <div class="tool" data-tool="eraser">Eraser</div>
-
   <div class="tool" data-tool="fire">Fire</div>
-  <div class="tool" data-tool="smoke">Smoke</div>
-  <div class="tool" data-tool="ice">Ice</div>
-  <div class="tool" data-tool="metal">Metal</div>
-  <div class="tool" data-tool="glass">Glass</div>
-  <div class="tool" data-tool="acid">Acid</div>
-  <div class="tool" data-tool="spawner">Spawner</div>
-  <div class="tool" data-tool="gravity">Gravity</div>
-  <div class="tool" data-tool="torch">Torch</div>
-
+  <div class="tool" data-tool="eraser">Eraser</div>
   <div class="tool" id="clear">Clear</div>
+  <div class="tool" id="settingsBtn">Settings</div>
+</div>
+
+<div id="settings">
+  <h3>Map Style</h3>
+  <select id="themeSelect">
+    <option value="theme-dark">Dark</option>
+    <option value="theme-grid">Grid</option>
+    <option value="theme-sand">Sand</option>
+    <option value="theme-lab">Lab</option>
+  </select>
+
+  <h3>Grid</h3>
+  <div class="setting">
+    <label><input type="checkbox" id="gridToggle" checked> Show Grid</label>
+  </div>
+  <div class="setting">
+    <input type="range" id="gridSize" min="8" max="40" value="20">
+  </div>
+
+  <h3>Cursor</h3>
+  <select id="cursorSelect">
+    <option value="cross">Cross</option>
+    <option value="square">Square</option>
+    <option value="dot">Dot</option>
+    <option value="ring">Ring</option>
+  </select>
+
+  <h3>Sound</h3>
+  <input type="range" id="volume" min="0" max="1" step="0.01" value="0.4">
 </div>
 
 <canvas id="canvas"></canvas>
-<div id="cursor"></div>
+<div id="cursor" class="cursor-cross"></div>
 
 <script>
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const cursor = document.getElementById("cursor");
 
-canvas.width = innerWidth;
-canvas.height = innerHeight;
-
+canvas.width=innerWidth;
+canvas.height=innerHeight;
 window.addEventListener("resize",()=>{
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
+  canvas.width=innerWidth;
+  canvas.height=innerHeight;
 });
 
-let tool="ball", holding=false;
-let gravityVal=0.4;
-let objects=[], particles=[];
+/* SETTINGS */
+let gridOn=true;
+let gridSize=20;
+let volume=0.4;
 
+document.getElementById("settingsBtn").onclick=()=>{
+  settings.style.display=settings.style.display==="block"?"none":"block";
+};
+themeSelect.onchange=e=>document.body.className=e.target.value;
+gridToggle.onchange=e=>gridOn=e.target.checked;
+gridSize.oninput=e=>gridSize=+e.target.value;
+volume.oninput=e=>volume=+e.target.value;
+
+/* CURSOR */
+cursorSelect.onchange=e=>{
+  cursor.className="";
+  cursor.classList.add("cursor-"+e.target.value);
+};
+
+/* INPUT */
+let tool="brick", holding=false;
 document.querySelectorAll(".tool").forEach(t=>{
   t.onclick=()=>{
     if(t.id==="clear"){objects=[];particles=[];return;}
+    if(t.id==="settingsBtn")return;
     document.querySelectorAll(".tool").forEach(x=>x.classList.remove("active"));
     t.classList.add("active");
     tool=t.dataset.tool;
@@ -119,72 +224,79 @@ document.querySelectorAll(".tool").forEach(t=>{
 });
 
 document.addEventListener("mousemove",e=>{
-  cursor.style.left=e.clientX-7+"px";
-  cursor.style.top=e.clientY-7+"px";
+  cursor.style.left=e.clientX+"px";
+  cursor.style.top=e.clientY+"px";
 });
 
-canvas.addEventListener("mousedown",()=>holding=true);
-canvas.addEventListener("mouseup",()=>holding=false);
+canvas.onmousedown=()=>holding=true;
+canvas.onmouseup=()=>holding=false;
 
-class ObjectEntity{
+/* WORLD */
+const gravity=0.35;
+let objects=[], particles=[];
+
+/* GRID SNAP */
+function snap(v){ return Math.floor(v/gridSize)*gridSize; }
+
+/* OBJECT */
+class Obj{
   constructor(x,y,w,h,type){
     this.x=x;this.y=y;this.w=w;this.h=h;
-    this.vx=0;this.vy=0;
     this.type=type;
+    this.burn=0;
     this.dead=false;
   }
   update(){
-    if(this.type!=="brick"){
-      this.vy+=gravityVal;
-      this.x+=this.vx;
-      this.y+=this.vy;
+    if(!["brick","metal","stone"].includes(this.type)){
+      this.y+=gravity;
     }
-    if(this.y+this.h>canvas.height){
-      this.y=canvas.height-this.h;
-      this.vy*=-0.6;
+    this.x=Math.max(0,Math.min(canvas.width-this.w,this.x));
+    this.y=Math.max(70,Math.min(canvas.height-this.h,this.y));
+
+    if(this.burn>0 && !["metal","stone"].includes(this.type)){
+      this.burn--;
+      if(this.burn<=0) this.dead=true;
     }
-    if(this.x<0||this.x+this.w>canvas.width) this.vx*=-0.6;
   }
   draw(){
     ctx.fillStyle={
-      ball:"#4fc3f7",
-      box:"#81c784",
       brick:"#8d6e63",
       metal:"#9e9e9e",
-      glass:"rgba(180,220,255,0.6)"
-    }[this.type]||"#fff";
+      wood:"#a97142",
+      stone:"#616161",
+      glass:"rgba(180,220,255,.6)"
+    }[this.type];
     ctx.fillRect(this.x,this.y,this.w,this.h);
   }
 }
 
+/* PARTICLE */
 class Particle{
   constructor(x,y,type){
     this.x=x;this.y=y;
-    this.vx=(Math.random()-0.5);
-    this.vy=Math.random();
+    this.vx=(Math.random()-0.5)*0.6;
+    this.vy=0;
     this.type=type;
     this.life=200;
   }
   update(){
-    if(this.type==="sand"){this.vy+=0.3;this.x+=this.vx;this.y+=this.vy;}
-    if(this.type==="water"){this.vy+=0.1;this.x+=(Math.random()-0.5)*2;this.y+=this.vy;}
-    if(this.type==="lava"){
-      this.vy+=0.2;this.y+=this.vy;
+    if(["sand","lava","oil"].includes(this.type)) this.vy+=0.3;
+    if(this.type==="water") this.vy+=0.15;
+    if(this.type==="fire"){
+      this.vy-=0.15;
       objects.forEach(o=>{
-        if(this.x>o.x&&this.x<o.x+o.w&&this.y>o.y&&this.y<o.y+o.h) o.dead=true;
-      });
-    }
-    if(this.type==="fire"){this.vy-=0.05;this.life--;}
-    if(this.type==="smoke"){this.vy-=0.1;this.life--;}
-    if(this.type==="acid"){
-      this.vy+=0.2;
-      objects.forEach(o=>{
-        if(o.type!=="metal"&&this.x>o.x&&this.x<o.x+o.w&&this.y>o.y&&this.y<o.y+o.h){
-          o.dead=true;this.life--;
+        if(o.type!=="metal" && o.type!=="stone" &&
+           this.x>o.x&&this.x<o.x+o.w&&this.y>o.y&&this.y<o.y+o.h){
+          o.burn=100;
         }
       });
     }
-    if(this.type==="ice"){this.vy+=0.1;}
+
+    this.x+=this.vx;
+    this.y+=this.vy;
+
+    this.x=Math.max(0,Math.min(canvas.width,this.x));
+    this.y=Math.max(70,Math.min(canvas.height,this.y));
     this.life--;
   }
   draw(){
@@ -193,82 +305,53 @@ class Particle{
       water:"#2196f3",
       lava:"#ff5722",
       fire:"#ff9800",
-      smoke:"#9e9e9e",
-      acid:"#00ff6a",
-      ice:"#b3e5fc"
+      oil:"#3e2723"
     }[this.type];
     ctx.fillRect(this.x,this.y,2,2);
   }
 }
 
+/* DRAW */
 canvas.addEventListener("mousemove",e=>{
   if(!holding)return;
-  const x=e.clientX,y=e.clientY;
+  let x=e.clientX,y=e.clientY;
+  if(gridOn){ x=snap(x); y=snap(y); }
 
-  if(tool==="ball")objects.push(new ObjectEntity(x,y,14,14,"ball"));
-  if(tool==="box")objects.push(new ObjectEntity(x,y,20,20,"box"));
-  if(tool==="brick")objects.push(new ObjectEntity(x,y,20,10,"brick"));
-  if(tool==="metal")objects.push(new ObjectEntity(x,y,22,22,"metal"));
-  if(tool==="glass")objects.push(new ObjectEntity(x,y,20,20,"glass"));
-
-  if(["sand","water","lava","fire","smoke","acid","ice"].includes(tool)){
-    for(let i=0;i<6;i++)particles.push(new Particle(x,y,tool));
+  if(["brick","metal","wood","stone","glass"].includes(tool)){
+    objects.push(new Obj(x,y,gridSize,gridSize,tool));
   }
-
+  if(["sand","water","lava","fire","oil"].includes(tool)){
+    for(let i=0;i<6;i++) particles.push(new Particle(x,y,tool));
+  }
   if(tool==="eraser"){
     objects=objects.filter(o=>Math.hypot(o.x-x,o.y-y)>30);
     particles=particles.filter(p=>Math.hypot(p.x-x,p.y-y)>30);
   }
-
-  if(tool==="bomb"){
-    for(let i=0;i<120;i++){
-      let p=new Particle(x,y,"sand");
-      p.vx=(Math.random()-0.5)*8;
-      p.vy=(Math.random()-0.5)*8;
-      particles.push(p);
-    }
-    objects.forEach(o=>{
-      if(o.type==="glass"&&Math.hypot(o.x-x,o.y-y)<80)o.dead=true;
-    });
-  }
-
-  if(tool==="spawner"){
-    objects.push({x,y,tick:0,draw(){
-      ctx.fillStyle="#ffeb3b";ctx.fillRect(this.x,this.y,14,14);
-    },update(){
-      this.tick++;if(this.tick%10===0)particles.push(new Particle(this.x,this.y,"sand"));
-    }});
-  }
-
-  if(tool==="gravity"){
-    objects.push({x,y,draw(){
-      ctx.strokeStyle="#9c27b0";ctx.beginPath();ctx.arc(this.x,this.y,20,0,Math.PI*2);ctx.stroke();
-    },update(){
-      particles.forEach(p=>{
-        let dx=this.x-p.x,dy=this.y-p.y,d=Math.hypot(dx,dy);
-        if(d<100){p.vx+=dx/d*0.05;p.vy+=dy/d*0.05;}
-      });
-    }});
-  }
-
-  if(tool==="torch"){
-    objects.push({x,y,draw(){
-      ctx.fillStyle="#ff9800";ctx.fillRect(this.x,this.y,8,16);
-    },update(){
-      particles.push(new Particle(this.x,this.y,"fire"));
-      particles.push(new Particle(this.x,this.y,"smoke"));
-    }});
-  }
 });
 
+/* LOOP */
 function loop(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  if(gridOn){
+    ctx.strokeStyle="rgba(255,255,255,.05)";
+    for(let x=0;x<canvas.width;x+=gridSize){
+      ctx.beginPath();ctx.moveTo(x,70);ctx.lineTo(x,canvas.height);ctx.stroke();
+    }
+    for(let y=70;y<canvas.height;y+=gridSize){
+      ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();
+    }
+  }
+
   objects.forEach(o=>o.update());
   particles.forEach(p=>p.update());
+
   objects=objects.filter(o=>!o.dead);
-  particles=particles.filter(p=>p.life>0&&p.y<canvas.height);
+  particles=particles.filter(p=>p.life>0);
+
   objects.forEach(o=>o.draw());
   particles.forEach(p=>p.draw());
+
   requestAnimationFrame(loop);
 }
 loop();
